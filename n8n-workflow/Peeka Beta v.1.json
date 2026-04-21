@@ -1,0 +1,1405 @@
+{
+  "name": "Peeka Beta v.1",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -320,
+        16
+      ],
+      "id": "a2849e9f-7a29-4225-9690-706b4155683c",
+      "name": "Telegram Trigger",
+      "webhookId": "403afca6-9606-4a08-b023-10e45914f9ff",
+      "credentials": {
+        "telegramApi": {
+          "id": "qSleHxqK2zWYRHjj",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "users",
+        "limit": 1,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "telegram_id",
+              "condition": "eq",
+              "keyValue": "={{ $node[\"Telegram Trigger\"].json[\"message\"][\"from\"][\"id\"] }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        64,
+        16
+      ],
+      "id": "29c73d52-107e-479b-9afa-e2f5d0845e26",
+      "name": "Get many rows",
+      "credentials": {
+        "supabaseApi": {
+          "id": "7BRXkD132LJnXmds",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "chat_buffer",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "keyValue": "={{ $json.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        240,
+        16
+      ],
+      "id": "1aaa2fb6-cecf-434d-a025-ba2bfce592f9",
+      "name": "Get a row",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "7BRXkD132LJnXmds",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "19ee967d-54d8-4881-99e6-0cb62b451368",
+              "leftValue": "={{ $node[\"Get a row\"].json[\"user_id\"] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        16
+      ],
+      "id": "fc76246a-3846-4985-821b-df26d1ba6346",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "tableId": "chat_buffer",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $('Get many rows').item.json.id }}"
+            },
+            {
+              "fieldId": "raw_text",
+              "fieldValue": "={{ $('Telegram Trigger').item.json.message.text }}"
+            },
+            {
+              "fieldId": "created_at",
+              "fieldValue": "={{ $now }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        608,
+        112
+      ],
+      "id": "5e673318-1e3e-4e7d-b5a2-4010133363ef",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "7BRXkD132LJnXmds",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "chat_buffer",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.user_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "raw_text",
+              "fieldValue": "={{ $('Get a row').item.json.raw_text }} {{ $node[\"Telegram Trigger\"].json[\"message\"][\"text\"] }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        608,
+        -80
+      ],
+      "id": "a0cc87e3-14e6-44d4-b4cf-6d0d28fed7aa",
+      "name": "Update a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "7BRXkD132LJnXmds",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "tableId": "chat_buffer",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.user_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1264,
+        0
+      ],
+      "id": "b8d7b6d1-23c8-48c8-97af-8a47fac1bdc9",
+      "name": "Delete a row",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "7BRXkD132LJnXmds",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "chat_buffer",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "keyValue": "={{ $json.user_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1072,
+        0
+      ],
+      "id": "87ad0d5a-6c11-4f5e-b93e-959d04567041",
+      "name": "Get a row1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "7BRXkD132LJnXmds",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        912,
+        0
+      ],
+      "id": "97e9eb41-c052-4c68-a63c-91826a58b4e4",
+      "name": "Wait",
+      "webhookId": "25cb520b-277c-4612-b480-f1f2133630bc"
+    },
+    {
+      "parameters": {
+        "content": "## Receive Chat\n**Simultantly** dalam 5 detik chat akan terus di rekam dalam supabase dan dikirim bersamaan",
+        "height": 416,
+        "width": 1664
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        32,
+        -160
+      ],
+      "typeVersion": 1,
+      "id": "48fac1a2-0553-411e-8b28-b0447cd784c2",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = items[0].json.raw_text || \"\";\nconst length = text.trim().length;\n\nlet status = \"PROCEED\";\nlet message = \"\";\n\nconst tooShortMessages = [\n  \"Eh, kependekan Kak! 😅 Peeka bingung mau catat apa. Contoh: 'Bakso 15rb' ya!\",\n  \"Satu kata belum cukup buat jagain cuan Kakak 💸. Yuk, tulis nominalnya juga!\",\n  \"Peeka sudah siap nih 🖊️, tapi butuh detailnya. Misal: 'Listrik 100k'. Ditunggu ya!\",\n  \"Kurang lengkap nih, Kak! ✨ Contoh: 'Jual kopi 20k'. Biar pembukuan makin rapi!\",\n  \"Duh, cuma segitu? 🤭 Peeka mau dong dikasih angka. Yuk, lengkapi transaksinya!\"\n];\n\nconst tooLongMessages = [\n  \"Aduh, kepanjangan! 😵‍💫 Peeka pusing bacanya. Ringkas intinya aja yuk, Kak!\",\n  \"Ini laporan apa novel, Kak? 😄 Ringkas dikit biar Peeka cepet catat cuannya!\",\n  \"Catatannya detail banget! Tapi Peeka butuh intinya aja, misal: 'Belanja 50k' 📝\",\n  \"Peeka mau bantu, tapi jangan panjang-panjang ya! 🍯 Poinnya aja biar sat-set!\",\n  \"Lampu Peeka kedap-kedip baca sepanjang ini ✨. Ringkas ya Kak, biar masuk laporan!\"\n];\n\nif (length < 5) {\n  status = \"TOO_SHORT\";\n  message = tooShortMessages[Math.floor(Math.random() * tooShortMessages.length)];\n} else if (length > 500) {\n  status = \"TOO_LONG\";\n  message = tooLongMessages[Math.floor(Math.random() * tooLongMessages.length)];\n}\n\nreturn [{\n  json: {\n    status,\n    message,\n    raw_text: text\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1488,
+        112
+      ],
+      "id": "061e4f07-a7c2-4a6c-be3e-e6454e34ee01",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "TOO_SHORT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "c10eadea-1461-4976-8d32-e9d81b3585ea"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d4b70f28-c0cc-4c7c-bea1-9bb3ade4af3b",
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "TOO_LONG",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "db045d35-ad2a-47a6-b428-ed0e9ba8d75b",
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "PROCEED",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        80,
+        432
+      ],
+      "id": "2323f6be-4576-4974-8583-69f17c726512",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Get many rows').item.json.telegram_id }}",
+        "text": "={{ $json.message }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        320,
+        320
+      ],
+      "id": "d293b254-b435-4ed3-9165-1cd20896b6e6",
+      "name": "Send a text message",
+      "webhookId": "b1ceb55c-cccb-49c4-8be9-a99c1b26c677",
+      "credentials": {
+        "telegramApi": {
+          "id": "qSleHxqK2zWYRHjj",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "PENGELUARAN",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "5d09bcb4-afef-4312-86ff-72a8c9d36a55"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "53d1ee80-1694-4a3c-a708-6d0542e0d662",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "PEMASUKAN",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "fe8cbebd-bbef-4d8a-89be-bdbea67f33f0",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "PIUTANG",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "02c72379-9531-4e71-9a53-c95cf2c8df01",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "LAPORAN",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3f7983ed-9dc1-4b82-8995-fd30a848f900",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "CHITCHAT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        656,
+        480
+      ],
+      "id": "88b170a1-0028-4624-8d76-4693d7b1782d",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Teks user: \"{{ $json.raw_text }}\"",
+        "options": {
+          "systemMessage": "Role: Kamu adalah Intelligent Intent Classifier untuk aplikasi keuangan Peeka.\nTugas Utama: Analisis teks user dan tentukan kategori transaksi berdasarkan sudut pandang Pemilik Bisnis.\n\nLogika Penentuan (Ikuti Urutan Ini):\n1. CHITCHAT: Jika teks berisi sapaan (halo, p, pik), ucapan terima kasih, curhat, atau kata-kata tanpa nominal uang dan tanpa kegiatan ekonomi yang jelas.\n2. LAPORAN: Jika user meminta rangkuman, cek saldo, atau melihat riwayat transaksi.\n3. PIUTANG: Jika konteksnya murni pinjam-meminjam uang (bukan jual-beli barang).\n4. PEMASUKAN:\n- Jika ada NAMA PELANGGAN yang membeli sesuatu (Contoh: \"Budi beli...\", \"Si Andi ambil...\").\n- Jika mengandung kata: jual, laku, terjual, terima pembayaran, dapet uang.\n5. PENGELUARAN:\n- Jika user (pemilik) membeli kebutuhan operasional atau pribadi TANPA menyebutkan nama pelanggan (Contoh: \"Beli bensin\", \"Bayar listrik\", \"Beli sabun\").\n- Jika mengandung kata: belanja stok, bayar pajak, gaji karyawan, parkir.\n\nAturan Ketat:\n- Jika ada format [Nama Orang] + beli/ambil, wajib klasifikasikan sebagai PEMASUKAN.\n- Jika pesan ambigu atau tidak ada angka/item yang jelas, klasifikasikan sebagai CHITCHAT.\n- Jawab HANYA dengan satu kata label: PENGELUARAN, PEMASUKAN, PIUTANG, LAPORAN, atau CHITCHAT.\n- Dilarang memberi penjelasan atau tanda baca tambahan.\n\nCONTOH KLASIFIKASI:\n- Input: \"P\" | Output: CHITCHAT\n- Input: \"Beli bensin 20rb\" | Output: PENGELUARAN (Pemilik yang beli)\n- Input: \"Budi beli soto 10.000\" | Output: PEMASUKAN (Pelanggan yang beli)\n- Input: \"Si Andi beli rokok 40rb dan korek 2rb\" | Output: PEMASUKAN\n- Input: \"Jual kopi 15rb\" | Output: PEMASUKAN\n- Input: \"Bayar listrik 100k\" | Output: PENGELUARAN\n- Input: \"Hutang ke Andi 50k\" | Output: PIUTANG\n- Input: \"Cek saldo\" | Output: LAPORAN"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        304,
+        480
+      ],
+      "id": "edd4e181-e511-471a-ab5d-9e418f65449a",
+      "name": "AI Gatekeeper"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Get many rows').item.json.telegram_id }}",
+        "text": "={{ [\"Wah, kalau itu Peeka nggak tahu cara nyatetnya di buku kas, Kak. 🤭 Yuk, fokus catat transaksi hari ini!\", \"Lampu Peeka kedap-kedip nih baca pesan Kakak ✨. Tapi Peeka spesialis urusan cuan, catat pengeluaran yuk!\", \"Duh, Kakak bisa aja! 😄 Tapi Peeka lagi stand by buat jagain dompet Kakak nih. Ada pemasukan baru?\", \"Eits, jangan buat Peeka bingung ya! 🐝 Fokus ke cuan yuk, biar bisnis Kakak makin terbang tinggi!\", \"Peeka dengerin kok... tapi sayangnya itu nggak nambah saldo di laporan. 😅 Ada transaksi yang mau dicatat?\"][Math.floor(Math.random() * 5)] }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        880,
+        1056
+      ],
+      "id": "c892fab3-9716-4ced-a81d-ad73addfb4eb",
+      "name": "Send a text message1",
+      "webhookId": "8acd98cc-fe49-4c1b-b582-2012b05e283c",
+      "credentials": {
+        "telegramApi": {
+          "id": "qSleHxqK2zWYRHjj",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
+      "typeVersion": 1,
+      "position": [
+        304,
+        672
+      ],
+      "id": "3900fd68-5153-412d-9337-0b6ad853152c",
+      "name": "DeepSeek Chat Model",
+      "credentials": {
+        "deepSeekApi": {
+          "id": "ARxuZATsvwGRuegr",
+          "name": "DeepSeek account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[\n  { \"nominal\": 50000, \"kategori\": \"Lainnya\", \"catatan\": \"beli sepatu\" },\n  { \"nominal\": 20000, \"kategori\": \"Transportasi\", \"catatan\": \"beli bensin\" }\n]"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1248,
+        560
+      ],
+      "id": "3ee62937-26e8-497e-8324-5e5fc11cc310",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1392,
+        320
+      ],
+      "id": "e7feead6-bbb4-4ed3-b09d-84532d7fc444",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Get many rows').item.json.telegram_id }}",
+        "text": "={{\n  \"✅ *Transaksi Berhasil Dicatat!* \\n\\n\" + \n  $json.data_final.map(item => \n    \"• \" + item.catatan + \": Rp \" + item.nominal.toLocaleString('id-ID')\n  ).join(\"\\n\") + \n  \"\\n\\n💰 *Total Pengeluaran:* Rp \" + $json.data_final.reduce((sum, item) => sum + item.nominal, 0).toLocaleString('id-ID') +\n  \"\\n\\n_Semua data sudah aman di database Peeka. Semangat bisnisnya!_ 🐝✨\"\n}}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1968,
+        320
+      ],
+      "id": "28f76a9e-5afa-4e60-aac2-6a3c0d94dc96",
+      "name": "Send a text message2",
+      "webhookId": "d7f24a4f-8802-4d8b-b9a0-e56f14825d9a",
+      "credentials": {
+        "telegramApi": {
+          "id": "qSleHxqK2zWYRHjj",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "Peeka masih bisa nerima Pengeluaran saja ya :)",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        880,
+        864
+      ],
+      "id": "a16fcdb8-5028-4b28-a8a4-08cd3ffabd1f",
+      "name": "Send a text message3",
+      "webhookId": "b59f5d3c-94b2-4b5c-846b-30d00d27e69e",
+      "credentials": {
+        "telegramApi": {
+          "id": "qSleHxqK2zWYRHjj",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "data_final",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1792,
+        320
+      ],
+      "id": "cbcfaeab-4bfd-49b8-ad4a-ab1b49c17858",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.from.id }}",
+        "text": "={{ [   \"Sip! Peeka terima ya catatannya. Tunggu bentar Kak, lagi Peeka rapihin nih... ✨\",   \"Oke Kak! Kasih Peeka waktu beberapa detik buat hitung-hitung dulu yaa. Stay tuned! 🐝\",   \"Siap! Peeka lagi buka buku kas nih, tunggu sebentar ya Kakak... 🖊️\",   \"Pesan masuk! Peeka proses dulu ya biar pembukuannya nggak berantakan. Sabar yaa... 🚀\",   \"Lampu Peeka lagi kedap-kedip nih tanda lagi mikir. Tunggu beberapa detik ya! 💡\" ][Math.floor(Math.random() * 5)] }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -144,
+        16
+      ],
+      "id": "13cf053b-6008-4bc2-9bde-62a80b6fda52",
+      "name": "Instant Feedback",
+      "webhookId": "87f38c17-5a52-488f-83cb-e42ebdea2dbe",
+      "credentials": {
+        "telegramApi": {
+          "id": "qSleHxqK2zWYRHjj",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Proses teks ini: {{ $node[\"Delete a row\"].json[\"raw_text\"] }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Role: Kamu adalah Spesialis Akuntansi Peeka yang bertugas mengekstrak transaksi keuangan ke JSON.\n\n### PROSEDUR KERJA (WAJIB):\n1. Baca teks input dari user.\n2. Lakukan \"Keyword Matching\": Cari apakah ada kata di input yang cocok dengan daftar kata kunci di bawah.\n3. Jika ditemukan kecocokan, GUNAKAN KATEGORI TERSEBUT meskipun nominalnya tidak ada atau teksnya singkat.\n4. Jika tidak ada nominal yang disebutkan, beri nilai 0 pada field \"nominal\".\n\n### DAFTAR KATEGORI & KATA KUNCI:\n- \"Transportasi\": [bensin, pertalite, pertamax, solar, parkir, oli, servis motor, gojek, grab, ongkir, kurir, tol, tiket, bbm].\n- \"Bahan Baku\": [beras, sayur, daging, bumbu, tepung, plastik, cup, sedotan, kopi, susu, gula, sembako, minyak, telur, bahan masakan].\n- \"Gaji Karyawan\": [gaji, bayar orang, tips, bonus, uang makan, kasbon, thr].\n- \"Internet dan Komunikasi\": [pulsa, paket data, wifi, indihome, kuota, telkom].\n- \"Listrik dan Air\": [token, pln, pdam, air minum, galon].\n- \"Alat Tulis Kantor\": [kertas, pulpen, lakban, nota, printer, tinta, buku, isolasi, staples].\n- \"Pemasaran\": [brosur, iklan, fb ads, ig ads, endorse, spanduk, banner].\n- \"Pemeliharaan\": [servis alat, perbaikan, cat tembok, ganti lampu, tukang].\n- \"Sewa Tempat\": [sewa lapak, ruko, kios, iuran pasar, keamanan, kebersihan].\n- \"Perizinan dan Pajak\": [pajak, stnk, izin usaha, pbb, pajak reklame].\n- \"Lainnya\": Hanya jika sama sekali tidak ada kata kunci yang cocok di atas.\n\n### ATURAN KONVERSI ANGKA:\n- k/rb = 1.000 | jt = 1.000.000 | m = 1.000.000.000 (Miliar)\n- Output \"nominal\" harus berupa INTEGER murni tanpa titik/koma.\n\n### CONTOH OUTPUT:\nInput: \"beli bensin\" -> [{\"nominal\": 0, \"kategori\": \"Transportasi\", \"catatan\": \"beli bensin\"}]\nInput: \"bayar gaji 2jt\" -> [{\"nominal\": 2000000, \"kategori\": \"Gaji Karyawan\", \"catatan\": \"bayar gaji\"}]\n\nJawab HANYA JSON Array."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1104,
+        320
+      ],
+      "id": "bb96741c-308d-472f-962e-816aedd147a0",
+      "name": "Agent Pengeluaran"
+    },
+    {
+      "parameters": {
+        "tableId": "pengeluaran",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $('Get a row1').item.json.user_id }}"
+            },
+            {
+              "fieldId": "tanggal",
+              "fieldValue": "={{ $now.toFormat('yyyy-MM-dd') }}"
+            },
+            {
+              "fieldId": "waktu",
+              "fieldValue": "={{ $now.toFormat('HH:mm:ss') }}"
+            },
+            {
+              "fieldId": "kategori",
+              "fieldValue": "={{ $json.output.kategori }}"
+            },
+            {
+              "fieldId": "nominal",
+              "fieldValue": "={{ $json.output.nominal }}"
+            },
+            {
+              "fieldId": "catatan",
+              "fieldValue": "={{ $json.output.catatan }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1600,
+        320
+      ],
+      "id": "f24747d5-9e7b-42ff-991c-da326816bf4e",
+      "name": "Create a row1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "7BRXkD132LJnXmds",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        576
+      ],
+      "id": "7394f785-34e5-4e37-a14c-80c6c593ce32",
+      "name": "DeepSeek Chat Model1",
+      "credentials": {
+        "deepSeekApi": {
+          "id": "ARxuZATsvwGRuegr",
+          "name": "DeepSeek account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseFormat": "json_object",
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        992
+      ],
+      "id": "cc110ebd-6f07-4b07-903d-a2550f1d697e",
+      "name": "DeepSeek Chat Model2",
+      "credentials": {
+        "deepSeekApi": {
+          "id": "ARxuZATsvwGRuegr",
+          "name": "DeepSeek account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Proses teks ini: {{ $node[\"Delete a row\"].json[\"raw_text\"] }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Role: Spesialis Akuntansi Penjualan Peeka.\nTugas: Ekstrak teks penjualan/pemasukan menjadi format JSON Master-Detail yang akurat untuk database.\n\n## LOGIKA IDENTIFIKASI ##\n1. nama_pelanggan: Identifikasi nama pembeli (Contoh: \"ke Budi\", \"Mbak Ambar beli\"). Jika tidak ada, wajib set: null.\n2. status_bayar: \n   - Wajib set \"piutang\" jika mengandung kata kunci: hutang, bon, nanti bayar, besok bayar, ngutang.\n   - Selain itu, default set ke \"cash\".\n3. items: Array objek berisi detail barang. Setiap objek wajib memiliki:\n   - nama_item: Nama barang/jasa.\n   - harga: Nominal per unit (Integer).\n   - qty: Jumlah barang (Integer). Jika tidak disebutkan, set default: 1.\n\n## ATURAN ANGKA (STRICT) ##\n- k / rb / rb-an = x 1.000\n- jt = x 1.000.000\n- m = x 1.000.000.000 (Miliar)\n- Harga dan nominal wajib INTEGER murni tanpa titik dan tanpa simbol mata uang.\n\n## CONTOH OUTPUT (FEW-SHOT) ##\nInput: \"Jual nasi goreng 2 porsi total 30rb ke Budi cash\"\nOutput: {\"nama_pelanggan\": \"Budi\", \"status_bayar\": \"cash\", \"items\": [{\"nama_item\": \"nasi goreng\", \"harga\": 15000, \"qty\": 2}]}\n\nInput: \"Mbak Ambar ambil daster 150k bon dulu\"\nOutput: {\"nama_pelanggan\": \"Mbak Ambar\", \"status_bayar\": \"piutang\", \"items\": [{\"nama_item\": \"daster\", \"harga\": 150000, \"qty\": 1}]}\n\nInput: \"Si Andi beli rokok 2 bungkus 40rb sama korek 2rb, bayar cash\"\nOutput: {\n  \"nama_pelanggan\": \"Andi\",\n  \"status_bayar\": \"cash\",\n  \"items\": [\n    {\"nama_item\": \"rokok\", \"harga\": 20000, \"qty\": 2},\n    {\"nama_item\": \"korek\", \"harga\": 2000, \"qty\": 1}\n  ]\n}\n\nInput: \"Laku kopi susu 15rb dan roti bakar 10rb\"\nOutput: {\n  \"nama_pelanggan\": null,\n  \"status_bayar\": \"cash\",\n  \"items\": [\n    {\"nama_item\": \"kopi susu\", \"harga\": 15000, \"qty\": 1},\n    {\"nama_item\": \"roti bakar\", \"harga\": 10000, \"qty\": 1}\n  ]\n}\n\n## ATURAN OUTPUT ##\n- Jawab HANYA dalam format JSON Object tunggal.\n- Dilarang memberikan penjelasan, prolog, atau epilog teks di luar JSON."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1104,
+        768
+      ],
+      "id": "7b323f44-f3c4-4232-a3b7-d7d5b5d7a7e5",
+      "name": "Agent Pemasukan",
+      "alwaysOutputData": false,
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Ambil output teks dari AI dan ubah jadi JSON asli\nconst rawOutput = $json.output;\nconst data = JSON.parse(rawOutput);\n\n// 2. Generate Nomor Nota (TL-PEEKA-YYYYMMDD-XXX)\nconst sekarang = new Date();\nconst tgl = sekarang.toISOString().slice(0, 10).replace(/-/g, '');\nconst randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, '0');\nconst nomor_nota = `TL-PEEKA-${tgl}-${randomSuffix}`;\n\n// 3. Hitung Total Nominal (untuk tabel transaksi master)\nlet total_nominal = 0;\ndata.items.forEach(item => {\n  total_nominal += (item.harga * item.qty);\n});\n\nconst ringkasan = data.items.map(i => i.nama_item).join(\", \");\n\n// 4. Kirim data yang sudah matang\nreturn {\n  nomor_nota,\n  total_nominal,\n  nama_pelanggan: data.nama_pelanggan,\n  status_bayar: data.status_bayar,\n  catatan: ringkasan,\n  items: data.items // Ini nanti di-split di node selanjutnya\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        768
+      ],
+      "id": "0232cb6d-9f4a-4603-b309-f93f4e275cf9",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "tableId": "transaksi",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $('Get a row1').item.json.user_id }}"
+            },
+            {
+              "fieldId": "nomor_nota",
+              "fieldValue": "={{ $json.nomor_nota }}"
+            },
+            {
+              "fieldId": "tanggal",
+              "fieldValue": "={{ $now.toFormat('yyyy-MM-dd') }}"
+            },
+            {
+              "fieldId": "waktu",
+              "fieldValue": "={{ $now.toFormat('HH:mm:ss') }}"
+            },
+            {
+              "fieldId": "total_nominal",
+              "fieldValue": "={{ $json.total_nominal }}"
+            },
+            {
+              "fieldId": "status_bayar",
+              "fieldValue": "={{ $json.status_bayar }}"
+            },
+            {
+              "fieldId": "catatan",
+              "fieldValue": "={{ $json.catatan }}"
+            },
+            {
+              "fieldId": "nama_pelanggan",
+              "fieldValue": "={{ $json.nama_pelanggan }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1664,
+        768
+      ],
+      "id": "ea0d6564-5400-4f8c-b4c2-935976665eb2",
+      "name": "Create a row2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "7BRXkD132LJnXmds",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "daftar_barang",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        2080,
+        768
+      ],
+      "id": "1a864c89-f766-4857-9f87-c421c018697a",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d8027d64-c74b-4a65-beaa-b57558c09d97",
+              "name": "daftar_barang",
+              "value": "={{ $('Code in JavaScript1').item.json.items }}",
+              "type": "array"
+            },
+            {
+              "id": "7d8ccf0e-ab64-4689-a8e7-3d9beddb1d95",
+              "name": "transaksi_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1872,
+        768
+      ],
+      "id": "bfc84dfb-b99a-41aa-94c7-81151bfca81f",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "tableId": "transaksi_items",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "transaksi_id",
+              "fieldValue": "={{ $json.transaksi_id }}"
+            },
+            {
+              "fieldId": "nama_item",
+              "fieldValue": "={{ $json.daftar_barang.nama_item }}"
+            },
+            {
+              "fieldId": "harga",
+              "fieldValue": "={{ $json.daftar_barang.harga }}"
+            },
+            {
+              "fieldId": "qty",
+              "fieldValue": "={{ $json.daftar_barang.qty }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2288,
+        768
+      ],
+      "id": "0503caff-33a7-44a1-af21-2a753cbdd4a1",
+      "name": "Create a row3",
+      "credentials": {
+        "supabaseApi": {
+          "id": "7BRXkD132LJnXmds",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "data_final",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2496,
+        768
+      ],
+      "id": "3587250e-7674-4906-99bb-b0fd60ff7a6e",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Get many rows').item.json.telegram_id }}",
+        "text": "={{\n  \"💰 *PENJUALAN BERHASIL DICATAT!* 💰\\n\" +\n  \"------------------------------------------\\n\" +\n  \"🆔 Nota: `\" + ($('Create a row2').item.json.nomor_nota || \"Tanpa Nota\") + \"`\\n\" +\n  \"👤 Pelanggan: \" + ($('Create a row2').item.json.nama_pelanggan || \"Umum\") + \"\\n\" +\n  \"💳 Status: *\" + ($('Create a row2').item.json.status_bayar || \"cash\").toUpperCase() + \"*\\n\" +\n  \"------------------------------------------\\n\" +\n  ($json.data_final || []).map(item => \n    \"• \" + (item.nama_item || \"Barang\") + \" x\" + (item.qty || 1) + \" (Rp \" + (item.subtotal || 0).toLocaleString('id-ID') + \")\"\n  ).join(\"\\n\") + \n  \"\\n------------------------------------------\\n\" +\n  \"💵 *TOTAL TAGIHAN: Rp \" + ($('Create a row2').item.json.total_nominal || 0).toLocaleString('id-ID') + \"*\\n\\n\" +\n  \"_Data otomatis sinkron ke Dashboard Peeka._ 🐝✨\"\n}}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2704,
+        768
+      ],
+      "id": "151a42cd-ac60-42a3-87b8-20e89039b751",
+      "name": "Send a text message4",
+      "webhookId": "3db001dd-edfe-412f-a114-72314c70ca53",
+      "credentials": {
+        "telegramApi": {
+          "id": "qSleHxqK2zWYRHjj",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Instant Feedback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        [
+          {
+            "node": "Get a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Update a row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row": {
+      "main": [
+        []
+      ]
+    },
+    "Create a row": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete a row": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row1": {
+      "main": [
+        [
+          {
+            "node": "Delete a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Get a row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Gatekeeper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    },
+    "AI Gatekeeper": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Agent Pengeluaran",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agent Pemasukan",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Gatekeeper",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agent Pengeluaran",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Create a row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instant Feedback": {
+      "main": [
+        [
+          {
+            "node": "Get many rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Pengeluaran": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent Pengeluaran",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent Pemasukan",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Pemasukan": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Create a row2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Create a row3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row3": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "68ad4d4a-9d7a-4323-b6b9-d36041caaa0d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0cc2728f9ce12ac82eee3a805ac27e7c01506318c281a31d1f28fecbc822e55d"
+  },
+  "id": "AEJQfuWANBVpPHsg",
+  "tags": []
+}
