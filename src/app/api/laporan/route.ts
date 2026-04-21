@@ -6,8 +6,10 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const telegram_id = searchParams.get('telegram_id')
+    
+    // Perbaikan Timezone: Ambil tanggal dari param atau default ke WIB hari ini
     const tanggal = searchParams.get('tanggal') || 
-      new Date().toISOString().split('T')[0]
+      new Date(new Date().getTime() + (7 * 60 * 60 * 1000)).toISOString().split('T')[0]
 
     if (!telegram_id) {
       return NextResponse.json(
@@ -16,127 +18,47 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    // Cari user
-    const { data: user } = await supabaseAdmin
-      .from('users')
-      .select('id, nama_toko, nama_pemilik')
-      .eq('telegram_id', telegram_id)
-      .single()
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User tidak ditemukan' },
-        { status: 404 }
-      )
-    }
-
-    // Panggil DB function rekap_harian
-    const { data: rekap, error: rekapError } = await supabaseAdmin
-      .rpc('rekap_harian', {
-        p_user_id: user.id,
-        p_tanggal: tanggal
-      })
-
-    if (rekapError) {
-      throw new Error(rekapError.message)
-    }
-
-    const r = rekap[0] as RekapHarian
-
-    // Ambil detail transaksi hari ini
-    const { data: transaksi } = await supabaseAdmin
+    // QUERY DATABASE (Tanpa redeclare const lagi)
+    const { data: transaksi, error } = await supabaseAdmin
       .from('transaksi')
       .select(`*, transaksi_items(*)`)
-      .eq('user_id', user.id)
-      .eq('tanggal', tanggal)
-      .order('created_at', { ascending: false })
+      .eq('telegram_id', telegram_id)
+      .eq('tanggal', tanggal) // Pastikan kolom 'tanggal' di DB formatnya YYYY-MM-DD
+      .order('created_at', { ascending: false });
 
-    // Ambil detail pengeluaran hari ini
-    const { data: pengeluaran } = await supabaseAdmin
-      .from('pengeluaran')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('tanggal', tanggal)
-      .order('created_at', { ascending: false })
+    if (error) throw error;
 
-    // Ambil piutang aktif
-    const { data: piutang_aktif } = await supabaseAdmin
-      .from('piutang')
-      .select('nama_pelanggan, sisa_hutang, created_at')
-      .eq('user_id', user.id)
-      .eq('status', 'aktif')
-      .order('created_at', { ascending: false })
+    // LOGIKA PERHITUNGAN
+    const total_pemasukan = transaksi
+      ?.filter(t => t.status_bayar === 'lunas' || t.status_bayar === 'piutang')
+      .reduce((acc, curr) => acc + (curr.total_nominal || 0), 0) || 0;
 
-    // Format laporan untuk Telegram
-    const formatRupiah = (n: number) =>
-      'Rp ' + n.toLocaleString('id-ID')
+    const total_pengeluaran = transaksi
+      ?.filter(t => t.status_bayar === 'pengeluaran')
+      .reduce((acc, curr) => acc + (curr.total_nominal || 0), 0) || 0;
 
-    const tanggalFormatted = new Date(tanggal).toLocaleDateString('id-ID', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    })
-
-    const telegramText = `
-🪲 *Laporan Peeka*
-📅 ${tanggalFormatted}
-🏪 ${user.nama_toko}
-
-━━━━━━━━━━━━━━━
-💰 *PEMASUKAN*
-━━━━━━━━━━━━━━━
-Total penjualan : ${formatRupiah(r?.total_penjualan || 0)}
-├ Cash          : ${formatRupiah(r?.total_cash || 0)}
-└ Piutang baru  : ${formatRupiah(r?.total_piutang_baru || 0)}
-Jumlah transaksi: ${r?.jumlah_transaksi || 0}x
-
-━━━━━━━━━━━━━━━
-💸 *PENGELUARAN*
-━━━━━━━━━━━━━━━
-Total keluar    : ${formatRupiah(r?.total_pengeluaran || 0)}
-
-━━━━━━━━━━━━━━━
-📊 *LABA KOTOR*
-━━━━━━━━━━━━━━━
-${formatRupiah(r?.laba_kotor || 0)}
-
-${(piutang_aktif?.length || 0) > 0 ? `
-━━━━━━━━━━━━━━━
-⚠️ *PIUTANG AKTIF*
-━━━━━━━━━━━━━━━
-${piutang_aktif?.map(p =>
-  `• ${p.nama_pelanggan}: ${formatRupiah(p.sisa_hutang)}`
-).join('\n')}
-Total piutang: ${formatRupiah(
-  piutang_aktif?.reduce((s, p) => s + p.sisa_hutang, 0) || 0
-)}` : '✅ Tidak ada piutang aktif'}
-
-━━━━━━━━━━━━━━━
-_Dikirim otomatis oleh Peeka 🪲_
-`.trim()
+    // Susun data Chart sederhana (jam vs total)
+    const chart_data = transaksi
+      ?.filter(t => t.status_bayar !== 'pengeluaran')
+      .map(t => ({
+        jam: new Date(t.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+        total: t.total_nominal
+      })).reverse();
 
     return NextResponse.json({
+      success: true,
       data: {
-        toko: {
-          nama_toko: user.nama_toko,
-          nama_pemilik: user.nama_pemilik
-        },
-        tanggal,
-        rekap: r,
-        transaksi,
-        pengeluaran,
-        piutang_aktif,
-        telegram_text: telegramText
-      },
-      message: 'Laporan berhasil dibuat'
-    } as ApiResponse<any>)
+        total_pemasukan,
+        total_pengeluaran,
+        total_cash: transaksi?.filter(t => t.status_bayar === 'lunas').reduce((acc, curr) => acc + (curr.total_nominal || 0), 0) || 0,
+        total_piutang: transaksi?.filter(t => t.status_bayar === 'piutang').reduce((acc, curr) => acc + (curr.total_nominal || 0), 0) || 0,
+        chart_data,
+        transaksi_list: transaksi
+      }
+    });
 
-  } catch (error) {
-    console.error('Error laporan:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+  } catch (error: any) {
+    console.error('API Laporan Error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
