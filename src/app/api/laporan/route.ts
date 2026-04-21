@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
         total_pemasukan,
         total_pengeluaran,
         total_cash: transaksi?.filter(t => t.status_bayar === 'lunas').reduce((acc, curr) => acc + (curr.total_nominal || 0), 0) || 0,
-        total_piutang: transaksi?.filter(t => t.status_bayar === 'piutang').reduce((acc, curr) => acc + (curr.total_nominal || 0), 0) || 0,
+        total_piutang: transaksi?.filter(t => t.status_bayar === 'piutang').reduce((acc, curr) => acc + (curr.total_hutang || 0), 0) || 0,
         chart_data,
         transaksi_list: transaksi
       }
