@@ -35,7 +35,7 @@ export default async function DashboardPage() {
       ? `https://${process.env.VERCEL_URL}` 
       : 'http://localhost:3000';
 
-  const TODAY = new Date().toISOString().split('T')[0];
+  const TODAY = new Date(new Date().getTime() + (7 * 60 * 60 * 1000)).toISOString().split('T')[0];
 
   try {
     // 4. Ambil data laporan dan piutang dari API Route kamu

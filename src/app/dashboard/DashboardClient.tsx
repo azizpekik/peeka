@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { RefreshCw, TrendingUp, TrendingDown, Receipt, AlertTriangle } from 'lucide-react'
 
-const TODAY = new Date().toISOString().split('T')[0]
+const TODAY = new Date(new Date().getTime() + (7 * 60 * 60 * 1000)).toISOString().split('T')[0];
 
 // Helper formatting
 const fmt = (n: number) => {
@@ -84,6 +84,7 @@ export default function DashboardClient({ initialData, initialPiutang, telegramI
               Peeka 🐝
             </h1>
             <p className="text-[10px] text-gray-400 font-medium tracking-wider uppercase">Business Assistant</p>
+            <p className="text-[10px] text-primary-500">ID: {telegramId}</p>
           </div>
           <button 
             onClick={() => load(true)}
