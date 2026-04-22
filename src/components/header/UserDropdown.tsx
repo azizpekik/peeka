@@ -7,7 +7,7 @@ import { DropdownItem } from "../ui/dropdown/DropdownItem";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const [userData, setUserData] = useState<{ nama_toko?: string; username?: string } | null>(null);
+  const [userData, setUserData] = useState<{ nama_toko?: string; username?: string; jenis_usaha?: string } | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
