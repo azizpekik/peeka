@@ -44,6 +44,7 @@ export async function GET(req: NextRequest) {
     const logoUrl = users?.logo_url || ''
 
     const pdfBuffer = await renderToBuffer(
+      // @ts-expect-error - react-pdf types are incompatible with createElement
       createElement(NotaPDF, {
         transaksi: {
           nomor_nota: transaksi.nomor_nota,
