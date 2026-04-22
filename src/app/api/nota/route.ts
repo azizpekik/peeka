@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
       })
     )
 
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `inline; filename="nota-${transaksi.nomor_nota}.pdf"`,
