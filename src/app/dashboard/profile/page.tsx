@@ -1,9 +1,9 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import PengeluaranClient from './PengeluaranClient'
+import ProfileForm from './ProfileForm'
 
-export default async function PengeluaranPage() {
+export default async function ProfilePage() {
   const cookieStore = await cookies()
   const userId = cookieStore.get('peeka_session')?.value
 
@@ -12,20 +12,15 @@ export default async function PengeluaranPage() {
   }
 
   const supabase = await createClient()
-
-  let user = null
-  if (userId) {
-    const { data } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .single()
-    user = data
-  }
+  const { data: user } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', userId)
+    .single()
 
   if (!user) {
     redirect('/auth/login')
   }
 
-  return <PengeluaranClient telegramId={user.telegram_id} />
+  return <ProfileForm user={user} userId={userId} />
 }

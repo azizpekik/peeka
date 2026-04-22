@@ -7,24 +7,16 @@ export async function POST(req: NextRequest) {
   try {
     const secret = req.headers.get('x-webhook-secret') || ''
     if (!validateWebhookSecret(secret)) {
-      return NextResponse.json(
-        { error: 'Unauthorized' } as ApiResponse<null>,
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' } as ApiResponse<null>, { status: 401 })
     }
 
     const body = await req.json()
     const { telegram_id, kategori, nominal, catatan } = body
 
-    // Validasi input
     if (!telegram_id || !nominal || nominal <= 0) {
-      return NextResponse.json(
-        { error: 'telegram_id dan nominal wajib diisi' } as ApiResponse<null>,
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'telegram_id dan nominal wajib diisi' } as ApiResponse<null>, { status: 400 })
     }
 
-    // Cari user
     const { data: user, error: userError } = await supabaseAdmin
       .from('users')
       .select('id')
@@ -32,18 +24,14 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (userError || !user) {
-      return NextResponse.json(
-        { error: 'User tidak ditemukan' } as ApiResponse<null>,
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'User tidak ditemukan' } as ApiResponse<null>, { status: 404 })
     }
 
-    // Insert pengeluaran
     const { data: pengeluaran, error } = await supabaseAdmin
       .from('pengeluaran')
       .insert({
         user_id: user.id,
-        kategori: kategori || 'lain_lain',
+        kategori: kategori || 'Lainnya',
         nominal: parseInt(nominal),
         catatan: catatan || null
       })
@@ -61,10 +49,7 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('Error pengeluaran:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' } as ApiResponse<null>,
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' } as ApiResponse<null>, { status: 500 })
   }
 }
 
@@ -74,10 +59,7 @@ export async function GET(req: NextRequest) {
   const tanggal = searchParams.get('tanggal')
 
   if (!telegram_id) {
-    return NextResponse.json(
-      { error: 'telegram_id required' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: 'telegram_id required' }, { status: 400 })
   }
 
   const { data: user } = await supabaseAdmin
@@ -87,10 +69,7 @@ export async function GET(req: NextRequest) {
     .single()
 
   if (!user) {
-    return NextResponse.json(
-      { error: 'User tidak ditemukan' },
-      { status: 404 }
-    )
+    return NextResponse.json({ error: 'User tidak ditemukan' }, { status: 404 })
   }
 
   let query = supabaseAdmin
@@ -109,7 +88,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ data })
+  return NextResponse.json({ success: true, data })
 }
 
 export async function PUT(req: NextRequest) {
@@ -123,16 +102,13 @@ export async function PUT(req: NextRequest) {
     const { pengeluaran_id, kategori, nominal, catatan } = body
 
     if (!pengeluaran_id || !nominal || nominal <= 0) {
-      return NextResponse.json(
-        { error: 'pengeluaran_id dan nominal wajib diisi' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'pengeluaran_id dan nominal wajib diisi' }, { status: 400 })
     }
 
     const { data, error } = await supabaseAdmin
       .from('pengeluaran')
       .update({
-        kategori: kategori || 'lain_lain',
+        kategori: kategori || 'Lainnya',
         nominal: parseInt(nominal),
         catatan: catatan || null,
       })
@@ -144,10 +120,7 @@ export async function PUT(req: NextRequest) {
       throw new Error(error?.message || 'Gagal update pengeluaran')
     }
 
-    return NextResponse.json({
-      data,
-      message: 'Pengeluaran berhasil diupdate'
-    })
+    return NextResponse.json({ data, message: 'Pengeluaran berhasil diupdate' })
 
   } catch (error) {
     console.error('Error update pengeluaran:', error)
@@ -166,10 +139,7 @@ export async function DELETE(req: NextRequest) {
     const pengeluaran_id = searchParams.get('pengeluaran_id')
 
     if (!pengeluaran_id) {
-      return NextResponse.json(
-        { error: 'pengeluaran_id wajib diisi' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'pengeluaran_id wajib diisi' }, { status: 400 })
     }
 
     const { error } = await supabaseAdmin

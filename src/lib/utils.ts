@@ -29,5 +29,6 @@ export const generateNomorNota = (urutan: number): string => {
 
 // Validasi telegram_id dari n8n
 export const validateWebhookSecret = (secret: string): boolean => {
-  return secret === process.env.N8N_WEBHOOK_SECRET
+  const valid = process.env.N8N_WEBHOOK_SECRET || process.env.NEXT_PUBLIC_WEBHOOK_SECRET
+  return secret === valid
 }

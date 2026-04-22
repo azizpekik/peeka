@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSidebar } from '../context/SidebarContext'
@@ -12,6 +13,8 @@ import {
   ArrowLeftRight,
   TrendingDown,
   Users,
+  Settings,
+  User,
 } from 'lucide-react'
 
 type NavItem = {
@@ -43,6 +46,14 @@ const navItems: NavItem[] = [
   },
 ]
 
+const settingItems: NavItem[] = [
+  {
+    icon: <User size={20} />,
+    name: 'Profile',
+    path: '/dashboard/profile',
+  },
+]
+
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar()
   const pathname = usePathname()
@@ -71,7 +82,7 @@ const AppSidebar: React.FC = () => {
         }`}
       >
         <Link href="/dashboard" className="flex items-center gap-3">
-          <span className="text-2xl flex-shrink-0">🪲</span>
+          <Image src="/logo/logo-peeka.png" alt="Peeka" width={36} height={36} className="flex-shrink-0 rounded-lg" />
           {(isExpanded || isHovered || isMobileOpen) && (
             <div>
               <p
@@ -109,6 +120,54 @@ const AppSidebar: React.FC = () => {
 
               <ul className="flex flex-col gap-4">
                 {navItems.map((nav) => (
+                  <li key={nav.name}>
+                    <Link
+                      href={nav.path}
+                      className={`menu-item group ${
+                        isActive(nav.path)
+                          ? 'menu-item-active'
+                          : 'menu-item-inactive'
+                      } ${
+                        !isExpanded && !isHovered
+                          ? 'lg:justify-center'
+                          : 'lg:justify-start'
+                      }`}
+                    >
+                      <span
+                        className={
+                          isActive(nav.path)
+                            ? 'menu-item-icon-active'
+                            : 'menu-item-icon-inactive'
+                        }
+                      >
+                        {nav.icon}
+                      </span>
+                      {(isExpanded || isHovered || isMobileOpen) && (
+                        <span className="menu-item-text">{nav.name}</span>
+                      )}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h2
+                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                  !isExpanded && !isHovered
+                    ? 'lg:justify-center'
+                    : 'justify-start'
+                }`}
+              >
+                {isExpanded || isHovered || isMobileOpen ? (
+                  'Setting'
+                ) : (
+                  <Settings size={16} />
+                )}
+              </h2>
+
+              <ul className="flex flex-col gap-4">
+                {settingItems.map((nav) => (
                   <li key={nav.name}>
                     <Link
                       href={nav.path}

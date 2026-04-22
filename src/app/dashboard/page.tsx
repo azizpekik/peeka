@@ -16,14 +16,17 @@ export default async function DashboardPage() {
   const supabase = await createClient()
 
   // 2. Ambil data profil user berdasarkan ID sesi (UUID)
-  const { data: user, error: userError } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', userId)
-    .single()
+  let user = null
+  if (userId) {
+    const { data } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single()
+    user = data
+  }
 
-  if (userError || !user) {
-    // Jika user tidak ditemukan di DB, hapus sesi dan login ulang
+  if (!user) {
     redirect('/auth/login')
   }
 
@@ -38,29 +41,34 @@ export default async function DashboardPage() {
   const TODAY = new Date(new Date().getTime() + (7 * 60 * 60 * 1000)).toISOString().split('T')[0];
 
   try {
-    // 4. Ambil data laporan dan piutang dari API Route kamu
-    const [lRes, pRes] = await Promise.all([
+    // 4. Ambil data laporan, piutang, dan pengeluaran dari API Route kamu
+    const [lRes, pRes, pgRes] = await Promise.all([
       fetch(`${baseUrl}/api/laporan?telegram_id=${user.telegram_id}&tanggal=${TODAY}`, { 
         cache: 'no-store' 
       }),
       fetch(`${baseUrl}/api/piutang?telegram_id=${user.telegram_id}&status=aktif`, { 
         cache: 'no-store' 
+      }),
+      fetch(`${baseUrl}/api/pengeluaran?telegram_id=${user.telegram_id}&tanggal=${TODAY}`, { 
+        cache: 'no-store' 
       })
     ]);
 
     // Cek jika API gagal merespon
-    if (!lRes.ok || !pRes.ok) {
-        throw new Error(`Gagal fetch API. Status: Laporan(${lRes.status}), Piutang(${pRes.status})`);
+    if (!lRes.ok || !pRes.ok || !pgRes.ok) {
+        throw new Error(`Gagal fetch API. Status: Laporan(${lRes.status}), Piutang(${pRes.status}), Pengeluaran(${pgRes.status})`);
     }
 
     const lData = await lRes.json();
     const pData = await pRes.json();
+    const pgData = await pgRes.json();
 
     // 5. Kirim data ke tampilan (Client Component)
     return (
       <DashboardClient 
         initialData={lData.data} 
-        initialPiutang={pData.data || []} 
+        initialPiutang={pData.data || []}
+        initialPengeluaran={pgData.data || []}
         telegramId={user.telegram_id} 
       />
     );

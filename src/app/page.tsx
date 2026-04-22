@@ -11,6 +11,6 @@ export default async function Home() {
   } else {
     // Di sini kamu bisa buat halaman landing page keren, 
     // atau untuk sementara arahkan ke info login
-    redirect('/auth/login') 
+    redirect('/dashboard') 
   }
 }

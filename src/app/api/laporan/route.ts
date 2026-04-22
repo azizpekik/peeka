@@ -34,14 +34,34 @@ export async function GET(req: NextRequest) {
 
     if (error) throw error;
 
-    // 3. LOGIKA PERHITUNGAN (Tetap sama)
+    // 3. Ambil data dari table pengeluaran
+    const { data: pengeluaranData, error: pengeluaranError } = await supabaseAdmin
+      .from('pengeluaran')
+      .select('nominal, created_at')
+      .eq('user_id', user.id)
+      .eq('tanggal', tanggal)
+
+    if (pengeluaranError) throw pengeluaranError;
+
+    const total_pengeluaran_db = pengeluaranData
+      ?.reduce((acc, curr) => acc + (curr.nominal || 0), 0) || 0;
+
+    // 4. LOGIKA PERHITUNGAN (Tetap sama)
     const total_pemasukan = transaksi
-      ?.filter(t => t.status_bayar === 'lunas' || t.status_bayar === 'piutang')
+      ?.filter(t => t.status_bayar === 'cash' || t.status_bayar === 'lunas' || t.status_bayar === 'piutang')
       .reduce((acc, curr) => acc + (curr.total_nominal || 0), 0) || 0;
 
-    const total_pengeluaran = transaksi
+    const total_pengeluaran = (transaksi
       ?.filter(t => t.status_bayar === 'pengeluaran')
+      .reduce((acc, curr) => acc + (curr.total_nominal || 0), 0) || 0) + total_pengeluaran_db;
+
+    const total_cash = transaksi
+      ?.filter(t => t.status_bayar === 'cash' || t.status_bayar === 'lunas')
       .reduce((acc, curr) => acc + (curr.total_nominal || 0), 0) || 0;
+
+    const total_piutang = transaksi
+      ?.filter(t => t.status_bayar === 'piutang')
+      .reduce((acc, curr) => acc + (curr.total_hutang || 0), 0) || 0;
 
     const chart_data = transaksi
       ?.filter(t => t.status_bayar !== 'pengeluaran')
@@ -55,8 +75,8 @@ export async function GET(req: NextRequest) {
       data: {
         total_pemasukan,
         total_pengeluaran,
-        total_cash: transaksi?.filter(t => t.status_bayar === 'lunas').reduce((acc, curr) => acc + (curr.total_nominal || 0), 0) || 0,
-        total_piutang: transaksi?.filter(t => t.status_bayar === 'piutang').reduce((acc, curr) => acc + (curr.total_hutang || 0), 0) || 0,
+        total_cash,
+        total_piutang,
         chart_data,
         transaksi_list: transaksi
       }

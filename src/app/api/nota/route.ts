@@ -1,9 +1,10 @@
-// @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { createElement } from 'react'
 import NotaPDF from '@/components/NotaPDF'
+import { join } from 'path'
+import { existsSync, readFileSync } from 'fs'
 
 export async function GET(req: NextRequest) {
   try {
@@ -18,13 +19,12 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    // Fetch transaksi
     let query = supabaseAdmin
       .from('transaksi')
       .select(`
         *,
         transaksi_items (*),
-        users (nama_toko)
+        users (nama_toko, nama_pemilik, no_wa, alamat_toko, keterangan_pembayaran, catatan_nota, logo_url)
       `)
 
     if (transaksi_id) {
@@ -42,16 +42,41 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    // Generate PDF
-    const { users, ...transaksiData } = transaksi
+    const users = transaksi.users as any
+    let logoBase64 = ''
+
+    if (users?.logo_url) {
+      const logoPath = join(process.cwd(), 'public', users.logo_url)
+      if (existsSync(logoPath)) {
+        const logoBuffer = readFileSync(logoPath)
+        logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`
+      }
+    }
+
     const pdfBuffer = await renderToBuffer(
-    createElement(NotaPDF, {
-        transaksi: transaksiData as any,
-        namaToko: (users as any)?.nama_toko || 'Warung'
-    })
+      createElement(NotaPDF, {
+        transaksi: {
+          nomor_nota: transaksi.nomor_nota,
+          tanggal: transaksi.tanggal,
+          waktu: transaksi.waktu,
+          total_nominal: transaksi.total_nominal,
+          status_bayar: transaksi.status_bayar,
+          nama_pelanggan: transaksi.nama_pelanggan,
+          catatan: transaksi.catatan,
+          transaksi_items: transaksi.transaksi_items
+        },
+        store: {
+          nama_toko: users?.nama_toko || 'Toko',
+          nama_pemilik: users?.nama_pemilik || '',
+          no_wa: users?.no_wa || '',
+          alamat_toko: users?.alamat_toko || '',
+          keterangan_pembayaran: users?.keterangan_pembayaran || '',
+          catatan_nota: users?.catatan_nota || '',
+          logo_base64: logoBase64
+        }
+      })
     )
 
-    // Return PDF
     return new NextResponse(pdfBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
