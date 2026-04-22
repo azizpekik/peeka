@@ -1,5 +1,5 @@
 import {
-  Document, Page, Text, View, StyleSheet, Image as PDFImage
+  Document, Page, Text, View, StyleSheet
 } from '@react-pdf/renderer'
 
 const styles = StyleSheet.create({
@@ -24,11 +24,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 6,
-    overflow: 'hidden',
     backgroundColor: '#465fff',
-  },
-  logoImage: {
-    objectFit: 'cover',
   },
   logoInitial: {
     width: 50,
@@ -284,7 +280,6 @@ interface NotaPDFProps {
 export default function NotaPDF({ transaksi, store }: NotaPDFProps) {
   const isCash = transaksi.status_bayar === 'cash'
   const initial = store.nama_toko?.charAt(0).toUpperCase() || 'T'
-  const hasLogo = store.logo_url && store.logo_url.length > 0 && (store.logo_url.startsWith('http') || store.logo_url.startsWith('/'))
 
   return (
     <Document>

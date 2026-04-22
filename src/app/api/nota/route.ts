@@ -3,8 +3,6 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { createElement } from 'react'
 import NotaPDF from '@/components/NotaPDF'
-import { join } from 'path'
-import { existsSync, readFileSync } from 'fs'
 
 export async function GET(req: NextRequest) {
   try {
@@ -43,15 +41,7 @@ export async function GET(req: NextRequest) {
     }
 
     const users = transaksi.users as any
-    let logoBase64 = ''
-
-    if (users?.logo_url) {
-      const logoPath = join(process.cwd(), 'public', users.logo_url)
-      if (existsSync(logoPath)) {
-        const logoBuffer = readFileSync(logoPath)
-        logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`
-      }
-    }
+    const logoUrl = users?.logo_url || ''
 
     const pdfBuffer = await renderToBuffer(
       createElement(NotaPDF, {
@@ -72,7 +62,7 @@ export async function GET(req: NextRequest) {
           alamat_toko: users?.alamat_toko || '',
           keterangan_pembayaran: users?.keterangan_pembayaran || '',
           catatan_nota: users?.catatan_nota || '',
-          logo_base64: logoBase64
+          logo_url: logoUrl
         }
       })
     )
