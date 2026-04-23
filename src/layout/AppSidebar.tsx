@@ -55,7 +55,7 @@ const settingItems: NavItem[] = [
 ]
 
 const AppSidebar: React.FC = () => {
-  const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar()
+  const { isExpanded, isMobileOpen, isHovered, setIsHovered, closeMobileSidebar } = useSidebar()
   const pathname = usePathname()
 
   const isActive = (path: string) => path === pathname
@@ -123,6 +123,7 @@ const AppSidebar: React.FC = () => {
                   <li key={nav.name}>
                     <Link
                       href={nav.path}
+                      onClick={closeMobileSidebar}
                       className={`menu-item group ${
                         isActive(nav.path)
                           ? 'menu-item-active'
@@ -171,6 +172,7 @@ const AppSidebar: React.FC = () => {
                   <li key={nav.name}>
                     <Link
                       href={nav.path}
+                      onClick={closeMobileSidebar}
                       className={`menu-item group ${
                         isActive(nav.path)
                           ? 'menu-item-active'
