@@ -37,7 +37,7 @@ export default function DashboardClient({ initialData, initialPiutang, initialPe
     try {
       const [l, p, pg, t] = await Promise.all([
         fetch(`/api/laporan?telegram_id=${telegramId}&tanggal=${tanggal}`).then(r => r.json()),
-        fetch(`/api/piutang?telegram_id=${telegramId}&status=aktif`).then(r => r.json()),
+        fetch(`/api/piutang-transaksi?telegram_id=${telegramId}&status=aktif`).then(r => r.json()),
         fetch(`/api/pengeluaran?telegram_id=${telegramId}&tanggal=${tanggal}`).then(r => r.json()),
         fetch(`/api/trend?telegram_id=${telegramId}&range=${trendRange}`).then(r => r.json())
       ])
@@ -390,46 +390,119 @@ export default function DashboardClient({ initialData, initialPiutang, initialPe
             </div>
           </div>
 
-          {/* Piutang Aktif */}
-          <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
-              <p className="text-sm font-semibold text-gray-800 dark:text-white/90">
-                Piutang Aktif
-              </p>
-              {piutang.length > 0 && (
-                <span className="text-xs font-semibold text-warning-500">
-                  {fmt(totalPiutang)}
-                </span>
+          {/* Piutang Aktif & Kategori Pengeluaran - 2 Kolom */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            {/* Piutang Aktif */}
+            <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+                <p className="text-sm font-semibold text-gray-800 dark:text-white/90">
+                  Piutang Aktif
+                </p>
+                {piutang.length > 0 && (
+                  <span className="text-xs font-semibold text-warning-500">
+                    {fmt(totalPiutang)}
+                  </span>
+                )}
+              </div>
+
+              {piutang.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10">
+                  <span className="text-3xl mb-2">✅</span>
+                  <p className="text-sm text-gray-400">Tidak ada piutang</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                  {piutang.map((p: any, i: number) => (
+                    <div key={i} className="flex items-center gap-3 px-5 py-3.5">
+                      <div className="w-8 h-8 rounded-full bg-warning-50 dark:bg-warning-500/10 flex items-center justify-center flex-shrink-0 text-xs font-bold text-warning-600 dark:text-warning-400">
+                        {p.nama_pelanggan ? p.nama_pelanggan[0].toUpperCase() : '?'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
+                          {p.nama_pelanggan}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {new Date(p.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                        </p>
+                      </div>
+                      <p className="text-sm font-semibold text-warning-600 dark:text-warning-400 flex-shrink-0">
+                        {fmt(p.sisa_hutang || p.total_hutang || 0)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
 
-            {piutang.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-10">
-                <span className="text-3xl mb-2">✅</span>
-                <p className="text-sm text-gray-400">Tidak ada piutang</p>
+            {/* Kategori Pengeluaran Hari Ini */}
+            <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+                <p className="text-sm font-semibold text-gray-800 dark:text-white/90">
+                  Kategori Pengeluaran
+                </p>
+                <span className="text-xs text-gray-400">
+                  {pengeluaran.length} item
+                </span>
               </div>
-            ) : (
-              <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                {piutang.map((p: any, i: number) => (
-                  <div key={i} className="flex items-center gap-3 px-5 py-3.5">
-                    <div className="w-8 h-8 rounded-full bg-warning-50 dark:bg-warning-500/10 flex items-center justify-center flex-shrink-0 text-xs font-bold text-warning-600 dark:text-warning-400">
-                      {p.nama_pelanggan ? p.nama_pelanggan[0].toUpperCase() : '?'}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
-                        {p.nama_pelanggan}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {new Date(p.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
-                      </p>
-                    </div>
-                    <p className="text-sm font-semibold text-warning-600 dark:text-warning-400 flex-shrink-0">
-                      {fmt(p.sisa_hutang || p.total_hutang || 0)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
+
+              {pengeluaran.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10">
+                  <span className="text-2xl mb-1">📊</span>
+                  <p className="text-xs text-gray-400">Tidak ada pengeluaran</p>
+                </div>
+              ) : (
+                <div className="px-5 py-4 space-y-3">
+                  {(() => {
+                    const categoryTotals: Record<string, number> = {}
+                    const categoryColors: Record<string, string> = {}
+                    const colors = [
+                      { bg: 'bg-brand-500', text: 'text-brand-500' },
+                      { bg: 'bg-error-500', text: 'text-error-500' },
+                      { bg: 'bg-success-500', text: 'text-success-500' },
+                      { bg: 'bg-warning-500', text: 'text-warning-500' },
+                      { bg: 'bg-purple-500', text: 'text-purple-500' },
+                      { bg: 'bg-pink-500', text: 'text-pink-500' },
+                      { bg: 'bg-cyan-500', text: 'text-cyan-500' },
+                      { bg: 'bg-orange-500', text: 'text-orange-500' },
+                    ]
+                    pengeluaran.forEach((p: any) => {
+                      const cat = p.kategori || 'Lainnya'
+                      categoryTotals[cat] = (categoryTotals[cat] || 0) + (p.nominal || 0)
+                      if (!categoryColors[cat]) {
+                        const idx = Object.keys(categoryTotals).length - 1
+                        categoryColors[cat] = colors[idx % colors.length].bg
+                      }
+                    })
+                    const sortedCategories = Object.entries(categoryTotals)
+                      .sort((a, b) => b[1] - a[1])
+                    const maxTotal = sortedCategories[0]?.[1] || 1
+                    
+                    return sortedCategories.slice(0, 6).map(([kategori, total]) => {
+                      const pct = Math.round((total / maxTotal) * 100)
+                      return (
+                        <div key={kategori}>
+                          <div className="flex justify-between text-xs mb-1">
+                            <span className="text-gray-600 dark:text-gray-300 font-medium capitalize">
+                              {kategori.replace(/_/g, ' ')}
+                            </span>
+                            <span className={`font-semibold ${categoryColors[kategori].replace('bg-', 'text-')}`}>
+                              {fmt(total)}
+                            </span>
+                          </div>
+                          <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full ${categoryColors[kategori]} rounded-full transition-all`}
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                        </div>
+                      )
+                    })
+                  })()}
+                </div>
+              )}
+            </div>
           </div>
         </div>
         </div>

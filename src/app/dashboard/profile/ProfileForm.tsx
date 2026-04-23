@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useRef } from 'react'
-import { Upload, Check } from 'lucide-react'
+import { useState } from 'react'
+import { Check } from 'lucide-react'
 
 interface User {
   id: string
@@ -24,29 +24,8 @@ export default function ProfileForm({ user, userId }: { user: User; userId: stri
   const [alamatToko, setAlamatToko] = useState(user?.alamat_toko || '')
   const [keteranganBayar, setKeteranganBayar] = useState(user?.keterangan_pembayaran || '')
   const [catatanNota, setCatatanNota] = useState(user?.catatan_nota || '')
-  const [logoPreview, setLogoPreview] = useState(user?.logo_url ? user.logo_url : '')
-  const [logoFile, setLogoFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setLogoFile(file)
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setLogoPreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-
-  const handleRemoveLogo = () => {
-    setLogoFile(null)
-    setLogoPreview('')
-    if (fileInputRef.current) fileInputRef.current.value = ''
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,29 +33,6 @@ export default function ProfileForm({ user, userId }: { user: User; userId: stri
     setSuccess(false)
 
     try {
-      let logo_url = user?.logo_url || ''
-
-      if (logoFile) {
-        const formData = new FormData()
-        formData.append('file', logoFile)
-
-        const uploadRes = await fetch(`/api/logo/${userId}`, {
-          method: 'POST',
-          body: formData,
-        })
-
-        if (uploadRes.ok) {
-          const uploadData = await uploadRes.json()
-          logo_url = uploadData.logo_url || `/logos/${userId}.png`
-        } else {
-          const errorText = await uploadRes.text()
-          console.error('Logo upload failed:', errorText)
-        }
-      } else if (!logoPreview && user?.logo_url) {
-        await fetch(`/api/logo/${userId}`, { method: 'DELETE' })
-        logo_url = ''
-      }
-
       const res = await fetch('/api/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -88,8 +44,7 @@ export default function ProfileForm({ user, userId }: { user: User; userId: stri
           no_wa: noWa,
           alamat_toko: alamatToko,
           keterangan_pembayaran: keteranganBayar,
-          catatan_nota: catatanNota,
-          logo_url
+          catatan_nota: catatanNota
         })
       })
       const json = await res.json()
@@ -118,36 +73,6 @@ export default function ProfileForm({ user, userId }: { user: User; userId: stri
 
       <div className="w-full max-w-7xl mx-auto px-4 md:px-6 py-6">
         <div className="space-y-6">
-
-          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
-            <div className="flex items-center gap-6">
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="w-24 h-24 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 flex items-center justify-center cursor-pointer hover:border-brand-500 transition-colors overflow-hidden bg-gray-50 dark:bg-gray-800 flex-shrink-0"
-              >
-                {logoPreview ? (
-                  <img src={logoPreview} alt="Logo" className="w-full h-full object-cover" />
-                ) : (
-                  <Upload size={24} className="text-gray-400" />
-                )}
-              </div>
-              <div>
-                <h2 className="text-base font-semibold text-gray-800 dark:text-white/90 mb-1">Logo Toko</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Format: JPG, PNG. Maks 2MB.</p>
-                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoChange} className="hidden" />
-                <div className="flex items-center gap-2">
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-brand-500 border border-brand-500 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-500/10 transition-colors">
-                    <Upload size={12} /> Upload
-                  </button>
-                  {logoPreview && (
-                    <button type="button" onClick={handleRemoveLogo} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                      Hapus
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
 
           <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5">

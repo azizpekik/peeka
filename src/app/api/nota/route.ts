@@ -41,7 +41,15 @@ export async function GET(req: NextRequest) {
     }
 
     const users = transaksi.users as any
-    const logoUrl = users?.logo_url || ''
+    
+    let logoUrl = users?.logo_url || ''
+    if (logoUrl && !logoUrl.startsWith('http')) {
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL 
+        || process.env.VERCEL_URL 
+          ? `https://${process.env.VERCEL_URL}` 
+          : 'http://localhost:3000'
+      logoUrl = `${baseUrl}${logoUrl}`
+    }
 
     const pdfBuffer = await renderToBuffer(
       // @ts-expect-error - react-pdf types are incompatible with createElement

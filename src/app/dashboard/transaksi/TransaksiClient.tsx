@@ -235,12 +235,17 @@ export default function TransaksiClient({ telegramId }: TransaksiClientProps) {
                     <Receipt size={15} className={t.status_bayar === 'cash' ? 'text-success-500' : 'text-warning-500'} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate max-w-[140px] sm:max-w-[200px]">
-                        {t.transaksi_items?.map((i: any) => `${i.nama_item}${i.qty > 1 ? ` x${i.qty}` : ''}`).join(', ')}
-                        {t.nama_pelanggan && <span className="text-warning-500 ml-1">· {t.nama_pelanggan}</span>}
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
+                      {t.transaksi_items?.map((i: any) => `${i.nama_item}${i.qty > 1 ? ` x${i.qty}` : ''}`).join(', ')}
+                    </p>
+                    {t.nama_pelanggan && (
+                      <p className="text-xs text-warning-500 truncate mt-0.5 font-medium">
+                        👤 {t.nama_pelanggan}
                       </p>
-                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full uppercase whitespace-nowrap flex-shrink-0 ${
+                    )}
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs text-gray-400">{t.nomor_nota}</span>
+                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full uppercase whitespace-nowrap ${
                         t.status_bayar === 'cash'
                           ? 'bg-success-50 text-success-600 dark:bg-success-500/10 dark:text-success-400'
                           : 'bg-warning-50 text-warning-600 dark:bg-warning-500/10 dark:text-warning-400'
@@ -248,7 +253,6 @@ export default function TransaksiClient({ telegramId }: TransaksiClientProps) {
                         {t.status_bayar}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-400 mt-0.5">{t.nomor_nota}</p>
                   </div>
                   <div className="text-right flex-shrink-0 hidden sm:block mr-1">
                     <p className="text-sm font-bold text-gray-800 dark:text-white/90">{fmt(t.total_nominal)}</p>

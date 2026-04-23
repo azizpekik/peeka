@@ -46,7 +46,7 @@ export default async function DashboardPage() {
       fetch(`${baseUrl}/api/laporan?telegram_id=${user.telegram_id}&tanggal=${TODAY}`, { 
         cache: 'no-store' 
       }),
-      fetch(`${baseUrl}/api/piutang?telegram_id=${user.telegram_id}&status=aktif`, { 
+      fetch(`${baseUrl}/api/piutang-transaksi?telegram_id=${user.telegram_id}&status=aktif`, { 
         cache: 'no-store' 
       }),
       fetch(`${baseUrl}/api/pengeluaran?telegram_id=${user.telegram_id}&tanggal=${TODAY}`, { 
