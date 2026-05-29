@@ -394,7 +394,7 @@ export default function DashboardClient({ initialData, initialPiutang, initialPe
                         />
                         <Tooltip
                           formatter={(v: any, n: any) => [fmtFull(v as number), n === 'penjualan' ? 'Penjualan' : n === 'pengeluaran' ? 'Pengeluaran' : 'Laba']}
-                          labelFormatter={(v: string) => fmtDateLong(v)}
+                          labelFormatter={(v: any) => fmtDateLong(String(v))}
                           contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e4e7ec' }}
                         />
                         <Legend wrapperStyle={{ fontSize: 11, paddingTop: 10 }} />
