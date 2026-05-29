@@ -393,7 +393,7 @@ export default function SuperAdminDashboardPage() {
                     borderRadius: '8px'
                   }}
                   labelFormatter={(value) => formatDate(value as string)}
-                  formatter={(value: number) => [formatRupiah(value), 'Omset']}
+                  formatter={(value: any) => [formatRupiah(Number(value)), 'Omset']}
                 />
                 <Area 
                   type="monotone" 
@@ -451,12 +451,12 @@ export default function SuperAdminDashboardPage() {
                     border: '1px solid #E5E7EB',
                     borderRadius: '8px'
                   }}
-                  formatter={(value: number, name: string) => [`${value} users`, name]}
+                  formatter={(value: any, name: any) => [`${value} users`, name]}
                 />
                 <Legend 
                   verticalAlign="bottom" 
                   height={36}
-                  formatter={(value: string, entry: any) => (
+                  formatter={(value: any, entry: any) => (
                     <span style={{ color: entry.color }}>{value}: {entry.payload.value}</span>
                   )}
                 />
@@ -502,7 +502,7 @@ export default function SuperAdminDashboardPage() {
                     border: '1px solid #E5E7EB',
                     borderRadius: '8px'
                   }}
-                  formatter={(value: number, name: string) => {
+                  formatter={(value: any, name: any) => {
                     if (name === 'Omset') return [formatRupiah(value), name]
                     return [`${value} transaksi`, name]
                   }}
