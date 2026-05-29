@@ -114,7 +114,7 @@ export default function SuperAdminDashboardPage() {
     return () => clearInterval(interval)
   }, [fetchStats, autoRefresh])
 
-  const handleExportChart = async (chartRef: React.RefObject<HTMLDivElement>, filename: string) => {
+  const handleExportChart = async (chartRef: React.RefObject<HTMLDivElement | null>, filename: string) => {
     if (!chartRef.current) return
     
     setExporting(filename)
