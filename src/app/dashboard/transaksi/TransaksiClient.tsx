@@ -170,6 +170,15 @@ export default function TransaksiClient({ telegramId }: TransaksiClientProps) {
     }, 0)
   }
 
+  const handleCustomDateSearch = () => {
+    if (!customStartDate || !customEndDate) return
+    setTimeRange('custom')
+    setPage(1)
+    setTimeout(() => {
+      load('custom', 1, filter, search)
+    }, 0)
+  }
+
   const handleFilterChange = (newFilter: FilterType) => {
     setFilter(newFilter)
     setPage(1) // Reset to page 1 when changing filter
