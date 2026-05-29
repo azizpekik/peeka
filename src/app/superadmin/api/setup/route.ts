@@ -62,23 +62,7 @@ export async function POST() {
         
         if (createTableError) {
           console.error('Gagal membuat tabel:', createTableError);
-          // Coba dengan cara lain - langsung query SQL
-          const { error: sqlError } = await supabase.query(`
-            create table if not exists public.admin_users (
-              id uuid default gen_random_uuid() primary key,
-              email text not null unique,
-              password_hash text not null,
-              nama text not null default 'Admin',
-              aktif boolean not null default true,
-              created_at timestamp with time zone default now(),
-              updated_at timestamp with time zone default now(),
-              last_login timestamp with time zone
-            )
-          `);
-          
-          if (sqlError) {
-            throw new Error('Gagal membuat tabel admin_users: ' + sqlError.message);
-          }
+          throw new Error('Gagal membuat tabel admin_users via RPC. Jalankan migrasi SQL manual di Supabase dashboard.');
         }
         
         console.log('Tabel admin_users berhasil dibuat');
