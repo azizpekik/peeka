@@ -471,7 +471,7 @@ export default function DashboardClient({ initialData, initialPiutang, initialPe
                             ))}
                           </Pie>
                           <Tooltip 
-                            formatter={(value: number, name: string) => [fmtFull(value), name]}
+                            formatter={(value: any, name: any) => [fmtFull(Number(value)), name]}
                             contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e4e7ec' }}
                           />
                         </RePieChart>
