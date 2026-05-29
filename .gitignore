@@ -1,0 +1,11 @@
+.next
+node_modules
+.env.local
+.DS_Store
+
+# Node.js binary
+node-v20.11.1-darwin-arm64/
+node.tar.gz
+
+# Service account keys (sensitive)
+keys/
