@@ -39,7 +39,9 @@ interface UserStats {
   returned: number
 }
 
-export default function BroadcastPage() {
+import { Suspense } from 'react'
+
+function BroadcastPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [message, setMessage] = useState('')
@@ -743,5 +745,17 @@ function XIcon({ size }: { size?: number }) {
       <line x1="18" y1="6" x2="6" y2="18" />
       <line x1="6" y1="6" x2="18" y2="18" />
     </svg>
+  )
+}
+
+export default function BroadcastPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500" />
+      </div>
+    }>
+      <BroadcastPageContent />
+    </Suspense>
   )
 }
