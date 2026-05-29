@@ -5,13 +5,16 @@ import { createServiceClient } from '@/lib/supabase/service';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const token = searchParams.get('token');
+
+  // Gunakan NEXT_PUBLIC_SITE_URL sebagai base, jangan request.url
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   
   // URL tujuan jika berhasil
-  const redirectTo = new URL('/dashboard', request.url);
+  const redirectTo = new URL('/dashboard', siteUrl);
 
   if (!token) {
     // Arahkan ke halaman error jika tidak ada token
-    return NextResponse.redirect(new URL('/auth/login?error=no-token', request.url));
+    return NextResponse.redirect(new URL('/auth/login?error=no-token', siteUrl));
   }
 
   const supabase = createServiceClient();
@@ -25,12 +28,12 @@ export async function GET(request: Request) {
 
   // 2. Validasi: Apakah ada error, token tidak ditemukan, atau sudah expired?
   if (error || !loginData) {
-    return NextResponse.redirect(new URL('/auth/login?error=invalid-token', request.url));
+    return NextResponse.redirect(new URL('/auth/login?error=invalid-token', siteUrl));
   }
 
   const isExpired = new Date(loginData.expires_at) < new Date();
   if (isExpired) {
-    return NextResponse.redirect(new URL('/auth/login?error=expired-token', request.url));
+    return NextResponse.redirect(new URL('/auth/login?error=expired-token', siteUrl));
   }
 
   // 3. Hapus token agar tidak bisa dipakai lagi (Single Use Security)
