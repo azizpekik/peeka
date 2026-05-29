@@ -1,6 +1,6 @@
-import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { createServiceClient } from '@/lib/supabase/service';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL('/auth/login?error=no-token', request.url));
   }
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   // 1. Ambil data token dari tabel login_tokens
   const { data: loginData, error } = await supabase
