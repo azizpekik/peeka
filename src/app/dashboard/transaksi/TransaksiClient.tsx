@@ -31,7 +31,7 @@ interface TransaksiClientProps {
   telegramId: string
 }
 
-type TimeRange = '1' | '7' | '30' | '365' | 'all'
+type TimeRange = '1' | '7' | '30' | '365' | 'all' | 'custom'
 type FilterType = 'semua' | 'cash' | 'piutang'
 
 const timeRangeOptions = [
@@ -96,6 +96,10 @@ export default function TransaksiClient({ telegramId }: TransaksiClientProps) {
   const [editCatatan, setEditCatatan] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
+
+  // Custom date range
+  const [customStartDate, setCustomStartDate] = useState('')
+  const [customEndDate, setCustomEndDate] = useState('')
 
   const load = useCallback(async (range: TimeRange, pageNum: number = 1, statusFilter: FilterType = filter, searchQuery: string = search) => {
     setLoading(true)
