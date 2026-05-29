@@ -125,7 +125,7 @@ export default function DashboardClient({ initialData, initialPiutang, initialPe
     load(false, range)
   }
 
-  const handleExportChart = async (chartRef: React.RefObject<HTMLDivElement>, filename: string) => {
+  const handleExportChart = async (chartRef: React.RefObject<HTMLDivElement | null>, filename: string) => {
     if (!chartRef.current) return
     setExporting(filename)
     try {
